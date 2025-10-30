@@ -56,53 +56,40 @@ export const mockExams: Exam[] = [
   },
 ];
 
-export const mockQuestions: Question[] = [
-  {
-    id: "q1",
-    sectionId: 1,
-    questionText: "What is the derivative of x²?",
-    questionTextMarathi: "x² चे व्युत्पन्न काय आहे?",
-    options: ["2x", "x", "2x²", "x²/2"],
-    optionsMarathi: ["२x", "x", "२x²", "x²/२"],
-    correctAnswer: 0,
-  },
-  {
-    id: "q2",
-    sectionId: 1,
-    questionText: "What is the value of π (pi) approximately?",
-    questionTextMarathi: "π (पाय) चे अंदाजे मूल्य काय आहे?",
-    options: ["3.14", "2.71", "1.41", "1.73"],
-    optionsMarathi: ["३.१४", "२.७१", "१.४१", "१.७३"],
-    correctAnswer: 0,
-  },
-  {
-    id: "q3",
-    sectionId: 1,
-    questionText: "Which of the following is a prime number?",
-    questionTextMarathi: "खालीलपैकी कोणती मूळ संख्या आहे?",
-    options: ["15", "17", "18", "20"],
-    optionsMarathi: ["१५", "१७", "१८", "२०"],
-    correctAnswer: 1,
-  },
-  {
-    id: "q4",
-    sectionId: 1,
-    questionText: "What is the square root of 144?",
-    questionTextMarathi: "१४४ चे वर्गमूळ काय आहे?",
-    options: ["10", "11", "12", "13"],
-    optionsMarathi: ["१०", "११", "१२", "१३"],
-    correctAnswer: 2,
-  },
-  {
-    id: "q5",
-    sectionId: 1,
-    questionText: "What is 15% of 200?",
-    questionTextMarathi: "२०० चा १५% किती आहे?",
-    options: ["25", "30", "35", "40"],
-    optionsMarathi: ["२५", "३०", "३५", "४०"],
-    correctAnswer: 1,
-  },
-];
+// Generate 100 questions across 5 sections (20 questions per section)
+const generateQuestions = (): Question[] => {
+  const questions: Question[] = [];
+  const questionsPerSection = 20;
+  const totalSections = 5;
+
+  for (let section = 1; section <= totalSections; section++) {
+    for (let i = 1; i <= questionsPerSection; i++) {
+      const qNum = (section - 1) * questionsPerSection + i;
+      questions.push({
+        id: `q${qNum}`,
+        sectionId: section,
+        questionText: `Section ${section} - Question ${i}: What is the value of ${qNum} + ${i}?`,
+        questionTextMarathi: `विभाग ${section} - प्रश्न ${i}: ${qNum} + ${i} चे मूल्य काय आहे?`,
+        options: [
+          `${qNum + i}`,
+          `${qNum + i + 1}`,
+          `${qNum + i - 1}`,
+          `${qNum * i}`
+        ],
+        optionsMarathi: [
+          `${qNum + i}`,
+          `${qNum + i + 1}`,
+          `${qNum + i - 1}`,
+          `${qNum * i}`
+        ],
+        correctAnswer: 0,
+      });
+    }
+  }
+  return questions;
+};
+
+export const mockQuestions: Question[] = generateQuestions();
 
 export interface ExamHistory {
   id: string;

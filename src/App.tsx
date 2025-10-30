@@ -7,6 +7,7 @@ import { AnimatePresence } from "framer-motion";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import ExamDetails from "./pages/ExamDetails";
+import ExamInstructions from "./pages/ExamInstructions";
 import ExamStart from "./pages/ExamStart";
 import Result from "./pages/Result";
 import History from "./pages/History";
@@ -27,6 +28,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/exam/:examId" element={<ExamDetails />} />
+              <Route path="/exam/:examId/instructions" element={<ExamInstructions />} />
               <Route path="/exam/:examId/start" element={<ExamStart />} />
               <Route path="/result/:examId" element={<Result />} />
               <Route path="/history" element={<History />} />

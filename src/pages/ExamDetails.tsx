@@ -45,13 +45,13 @@ const ExamDetails = () => {
         description: "You can now start your examination.",
       });
       setTimeout(() => {
-        navigate(`/exam/${examId}/start`);
+        navigate(`/exam/${examId}/instructions`);
       }, 1000);
     }, 2000);
   };
 
   return (
-    <div className="min-h-screen pt-24 pb-16">
+    <div className="min-h-screen pt-24 pb-16 bg-background">
       <div className="container mx-auto px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -59,10 +59,10 @@ const ExamDetails = () => {
           className="max-w-4xl mx-auto"
         >
           {/* Header */}
-          <div className="glass-card rounded-3xl p-8 mb-8 neon-border">
+          <div className="bg-card border border-border rounded-lg p-8 mb-8">
             <div className="flex items-start justify-between mb-6">
               <div>
-                <h1 className="text-4xl font-bold mb-3 gradient-text">
+                <h1 className="text-4xl font-bold mb-3 gradient-text text-foreground">
                   {exam.title}
                 </h1>
                 <p className="text-lg text-muted-foreground">
@@ -72,7 +72,7 @@ const ExamDetails = () => {
               <div className="text-right">
                 <p className="text-sm text-muted-foreground mb-2">Exam Fee</p>
                 <div className="flex items-center gap-1">
-                  <IndianRupee className="w-8 h-8 text-accent" />
+                  <IndianRupee className="w-8 h-8 text-primary" />
                   <span className="text-4xl font-bold gradient-text">
                     {exam.price}
                   </span>
@@ -87,21 +87,21 @@ const ExamDetails = () => {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.1 }}
-              className="glass-card rounded-2xl p-6"
+              className="bg-card border border-border rounded-lg p-6"
             >
               <FileText className="w-10 h-10 text-primary mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Exam Structure</h3>
+              <h3 className="text-xl font-semibold mb-2 text-foreground">Exam Structure</h3>
               <ul className="space-y-2 text-muted-foreground">
                 <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-accent" />
+                  <CheckCircle className="w-4 h-4 text-primary" />
                   {exam.sections} Sections
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-accent" />
+                  <CheckCircle className="w-4 h-4 text-primary" />
                   {exam.questionsPerSection} Questions per Section
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-accent" />
+                  <CheckCircle className="w-4 h-4 text-primary" />
                   Total {exam.totalQuestions} Questions
                 </li>
               </ul>
@@ -111,21 +111,21 @@ const ExamDetails = () => {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2 }}
-              className="glass-card rounded-2xl p-6"
+              className="bg-card border border-border rounded-lg p-6"
             >
-              <Clock className="w-10 h-10 text-secondary mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Time Allocation</h3>
+              <Clock className="w-10 h-10 text-primary mb-4" />
+              <h3 className="text-xl font-semibold mb-2 text-foreground">Time Allocation</h3>
               <ul className="space-y-2 text-muted-foreground">
                 <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-accent" />
+                  <CheckCircle className="w-4 h-4 text-primary" />
                   {exam.timePerSection} Minutes per Section
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-accent" />
+                  <CheckCircle className="w-4 h-4 text-primary" />
                   Total {exam.timePerSection * exam.sections} Minutes
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-accent" />
+                  <CheckCircle className="w-4 h-4 text-primary" />
                   Auto-submit on Timeout
                 </li>
               </ul>
@@ -137,10 +137,10 @@ const ExamDetails = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="glass-card rounded-2xl p-8 mb-8"
+            className="bg-card border border-border rounded-lg p-8 mb-8"
           >
-            <Shield className="w-10 h-10 text-accent mb-4" />
-            <h3 className="text-2xl font-semibold mb-4">Exam Features</h3>
+            <Shield className="w-10 h-10 text-primary mb-4" />
+            <h3 className="text-2xl font-semibold mb-4 text-foreground">Exam Features</h3>
             <div className="grid md:grid-cols-2 gap-4">
               {[
                 "Bilingual Support (English/Marathi)",
@@ -168,7 +168,7 @@ const ExamDetails = () => {
             <button
               onClick={handlePayment}
               disabled={isProcessing}
-              className="group px-12 py-5 rounded-full gradient-primary text-white text-lg font-semibold neon-glow hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="group px-12 py-5 rounded-lg gradient-primary text-white text-lg font-semibold hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isProcessing ? (
                 <div className="flex items-center gap-3">
