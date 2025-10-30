@@ -1,18 +1,22 @@
+export interface QuestionSet {
+  id: string;
+  setNumber: number;
+  title: string;
+  questions: Question[];
+}
+
 export interface Exam {
   id: string;
   title: string;
   description: string;
   price: number;
-  sections: number;
-  questionsPerSection: number;
-  timePerSection: number;
-  totalQuestions: number;
+  timeAllowed: number; // minutes for 20 questions
+  questionSets: QuestionSet[];
   isPaid: boolean;
 }
 
 export interface Question {
   id: string;
-  sectionId: number;
   questionText: string;
   questionTextMarathi: string;
   options: string[];
@@ -20,76 +24,89 @@ export interface Question {
   correctAnswer: number;
 }
 
-export const mockExams: Exam[] = [
-  {
-    id: "exam-1",
-    title: "Advanced Mathematics Examination",
-    description: "Comprehensive test covering calculus, algebra, and statistics",
-    price: 499,
-    sections: 5,
-    questionsPerSection: 20,
-    timePerSection: 20,
-    totalQuestions: 100,
-    isPaid: false,
-  },
-  {
-    id: "exam-2",
-    title: "Computer Science Fundamentals",
-    description: "Data structures, algorithms, and programming concepts",
-    price: 599,
-    sections: 5,
-    questionsPerSection: 20,
-    timePerSection: 20,
-    totalQuestions: 100,
-    isPaid: false,
-  },
-  {
-    id: "exam-3",
-    title: "General Knowledge & Current Affairs",
-    description: "Comprehensive GK test covering history, geography, and current events",
-    price: 399,
-    sections: 5,
-    questionsPerSection: 20,
-    timePerSection: 20,
-    totalQuestions: 100,
-    isPaid: false,
-  },
-];
-
-// Generate 100 questions across 5 sections (20 questions per section)
-const generateQuestions = (): Question[] => {
+// Generate 20 questions for a question set
+const generateQuestionSet = (subjectName: string, setNumber: number): Question[] => {
   const questions: Question[] = [];
-  const questionsPerSection = 20;
-  const totalSections = 5;
-
-  for (let section = 1; section <= totalSections; section++) {
-    for (let i = 1; i <= questionsPerSection; i++) {
-      const qNum = (section - 1) * questionsPerSection + i;
-      questions.push({
-        id: `q${qNum}`,
-        sectionId: section,
-        questionText: `Section ${section} - Question ${i}: What is the value of ${qNum} + ${i}?`,
-        questionTextMarathi: `विभाग ${section} - प्रश्न ${i}: ${qNum} + ${i} चे मूल्य काय आहे?`,
-        options: [
-          `${qNum + i}`,
-          `${qNum + i + 1}`,
-          `${qNum + i - 1}`,
-          `${qNum * i}`
-        ],
-        optionsMarathi: [
-          `${qNum + i}`,
-          `${qNum + i + 1}`,
-          `${qNum + i - 1}`,
-          `${qNum * i}`
-        ],
-        correctAnswer: 0,
-      });
-    }
+  for (let i = 1; i <= 20; i++) {
+    questions.push({
+      id: `q-${subjectName}-set${setNumber}-${i}`,
+      questionText: `${subjectName} - Set ${setNumber} - Question ${i}: What is the value of ${i * setNumber} + ${i}?`,
+      questionTextMarathi: `${subjectName} - संच ${setNumber} - प्रश्न ${i}: ${i * setNumber} + ${i} चे मूल्य काय आहे?`,
+      options: [
+        `${i * setNumber + i}`,
+        `${i * setNumber + i + 1}`,
+        `${i * setNumber + i - 1}`,
+        `${i * setNumber * i}`
+      ],
+      optionsMarathi: [
+        `${i * setNumber + i}`,
+        `${i * setNumber + i + 1}`,
+        `${i * setNumber + i - 1}`,
+        `${i * setNumber * i}`
+      ],
+      correctAnswer: 0,
+    });
   }
   return questions;
 };
 
-export const mockQuestions: Question[] = generateQuestions();
+// Generate 5 question sets for each subject
+const generateQuestionSets = (subjectName: string): QuestionSet[] => {
+  return Array.from({ length: 5 }, (_, index) => ({
+    id: `${subjectName.toLowerCase().replace(/\s+/g, '-')}-set-${index + 1}`,
+    setNumber: index + 1,
+    title: `Set ${index + 1}`,
+    questions: generateQuestionSet(subjectName, index + 1),
+  }));
+};
+
+export const mockExams: Exam[] = [
+  {
+    id: "exam-1",
+    title: "Mathematics",
+    description: "Comprehensive mathematics test covering algebra, calculus, and geometry",
+    price: 299,
+    timeAllowed: 30,
+    questionSets: generateQuestionSets("Mathematics"),
+    isPaid: false,
+  },
+  {
+    id: "exam-2",
+    title: "Physics",
+    description: "Physics examination covering mechanics, thermodynamics, and electromagnetism",
+    price: 299,
+    timeAllowed: 30,
+    questionSets: generateQuestionSets("Physics"),
+    isPaid: false,
+  },
+  {
+    id: "exam-3",
+    title: "Chemistry",
+    description: "Chemistry test including organic, inorganic, and physical chemistry",
+    price: 299,
+    timeAllowed: 30,
+    questionSets: generateQuestionSets("Chemistry"),
+    isPaid: false,
+  },
+  {
+    id: "exam-4",
+    title: "Biology",
+    description: "Biology examination covering botany, zoology, and human physiology",
+    price: 299,
+    timeAllowed: 30,
+    questionSets: generateQuestionSets("Biology"),
+    isPaid: false,
+  },
+  {
+    id: "exam-5",
+    title: "General Knowledge",
+    description: "Comprehensive GK test covering history, geography, and current affairs",
+    price: 249,
+    timeAllowed: 30,
+    questionSets: generateQuestionSets("General Knowledge"),
+    isPaid: false,
+  },
+];
 
 export interface ExamHistory {
   id: string;

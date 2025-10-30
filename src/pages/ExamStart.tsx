@@ -5,41 +5,39 @@ import QuestionCard from "@/components/QuestionCard";
 import Timer from "@/components/Timer";
 import ProgressBar from "@/components/ProgressBar";
 import TranslateButton from "@/components/TranslateButton";
-import { mockQuestions, mockExams } from "@/data/mockData";
+import { mockExams } from "@/data/mockData";
 import { Flag, ChevronLeft, ChevronRight, Send } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 const ExamStart = () => {
-  const { examId } = useParams();
+  const { examId, setId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const [currentSection, setCurrentSection] = useState(1);
-  const [currentQuestionInSection, setCurrentQuestionInSection] = useState(0);
-  const [answers, setAnswers] = useState<(number | null)[]>(
-    new Array(mockQuestions.length).fill(null)
-  );
-  const [flagged, setFlagged] = useState<boolean[]>(
-    new Array(mockQuestions.length).fill(false)
-  );
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [answers, setAnswers] = useState<(number | null)[]>([]);
+  const [flagged, setFlagged] = useState<boolean[]>([]);
   const [isMarathi, setIsMarathi] = useState(false);
+
+  const exam = mockExams.find((e) => e.id === examId);
+  const questionSet = exam?.questionSets.find((s) => s.id === setId);
 
   useEffect(() => {
     const selectedLanguage = location.state?.selectedLanguage;
     if (selectedLanguage === "marathi") {
       setIsMarathi(true);
     }
-  }, [location.state]);
+    if (questionSet) {
+      setAnswers(new Array(questionSet.questions.length).fill(null));
+      setFlagged(new Array(questionSet.questions.length).fill(false));
+    }
+  }, [location.state, questionSet]);
 
-  const exam = mockExams.find((e) => e.id === examId);
-
-  if (!exam) {
-    return <div>Exam not found</div>;
+  if (!exam || !questionSet) {
+    return <div>Exam or Question Set not found</div>;
   }
 
-  const questionsPerSection = 20;
-  const sectionQuestions = mockQuestions.filter(q => q.sectionId === currentSection);
-  const currentQuestionIndex = (currentSection - 1) * questionsPerSection + currentQuestionInSection;
-  const currentQuestionData = mockQuestions[currentQuestionIndex];
+  const currentQuestion = questionSet.questions[currentQuestionIndex];
+  const totalQuestions = questionSet.questions.length;
 
   const handleSelectAnswer = (answerIndex: number) => {
     const newAnswers = [...answers];
@@ -48,20 +46,14 @@ const ExamStart = () => {
   };
 
   const handleNext = () => {
-    if (currentQuestionInSection < questionsPerSection - 1) {
-      setCurrentQuestionInSection(currentQuestionInSection + 1);
-    } else if (currentSection < 5) {
-      setCurrentSection(currentSection + 1);
-      setCurrentQuestionInSection(0);
+    if (currentQuestionIndex < totalQuestions - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
     }
   };
 
   const handlePrev = () => {
-    if (currentQuestionInSection > 0) {
-      setCurrentQuestionInSection(currentQuestionInSection - 1);
-    } else if (currentSection > 1) {
-      setCurrentSection(currentSection - 1);
-      setCurrentQuestionInSection(questionsPerSection - 1);
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
     }
   };
 
@@ -81,43 +73,43 @@ const ExamStart = () => {
 
   const handleSubmit = () => {
     const score = answers.reduce((acc, answer, index) => {
-      if (answer === mockQuestions[index].correctAnswer) {
+      if (answer === questionSet.questions[index].correctAnswer) {
         return acc + 1;
       }
       return acc;
     }, 0);
 
-    navigate(`/result/${examId}`, {
-      state: { score, total: mockQuestions.length },
+    navigate(`/result/${examId}/${setId}`, {
+      state: { score, total: totalQuestions },
     });
   };
 
   const handleTimeUp = () => {
     toast({
       title: "Time's Up!",
-      description: "Section auto-submitted",
+      description: "Exam auto-submitted",
       variant: "destructive",
     });
     handleSubmit();
   };
 
-  const isLastQuestion = currentSection === 5 && currentQuestionInSection === questionsPerSection - 1;
+  const isLastQuestion = currentQuestionIndex === totalQuestions - 1;
 
   return (
-    <div className="min-h-screen pt-24 pb-16 bg-background">
+    <div className="flex-1 pt-24 pb-16 bg-background">
       <div className="container mx-auto px-6">
         {/* Sticky Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-card border border-border rounded-lg p-6 mb-8 sticky top-20"
+          className="bg-card border border-border rounded-lg p-6 mb-8 sticky top-20 z-10"
         >
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <h2 className="text-2xl font-bold text-foreground">
-                Section {currentSection} of 5
+                {exam.title} - {questionSet.title}
               </h2>
-              <p className="text-sm text-muted-foreground">{exam.title}</p>
+              <p className="text-sm text-muted-foreground">20 MCQs • {exam.timeAllowed} Minutes</p>
             </div>
 
             <div className="flex items-center gap-4">
@@ -125,7 +117,7 @@ const ExamStart = () => {
                 isMarathi={isMarathi}
                 onToggle={() => setIsMarathi(!isMarathi)}
               />
-              <Timer initialMinutes={exam.timePerSection} onTimeUp={handleTimeUp} />
+              <Timer initialMinutes={exam.timeAllowed} onTimeUp={handleTimeUp} />
             </div>
           </div>
         </motion.div>
@@ -138,11 +130,11 @@ const ExamStart = () => {
             className="mb-8"
           >
             <ProgressBar
-              current={currentQuestionInSection + 1}
-              total={questionsPerSection}
+              current={currentQuestionIndex + 1}
+              total={totalQuestions}
             />
             <p className="text-sm text-muted-foreground mt-2 text-center">
-              Section Progress: {currentQuestionInSection + 1} of {questionsPerSection} questions
+              Progress: {currentQuestionIndex + 1} of {totalQuestions} questions
             </p>
           </motion.div>
 
@@ -158,7 +150,7 @@ const ExamStart = () => {
             >
               <div className="flex items-center justify-between mb-4">
                 <span className="text-lg font-semibold text-foreground">
-                  Question {currentQuestionInSection + 1} of {questionsPerSection}
+                  Question {currentQuestionIndex + 1} of {totalQuestions}
                 </span>
                 {flagged[currentQuestionIndex] && (
                   <span className="flex items-center gap-2 text-sm text-primary">
@@ -169,7 +161,7 @@ const ExamStart = () => {
               </div>
 
               <QuestionCard
-                question={currentQuestionData}
+                question={currentQuestion}
                 selectedAnswer={answers[currentQuestionIndex]}
                 onSelectAnswer={handleSelectAnswer}
                 isMarathi={isMarathi}
@@ -188,7 +180,7 @@ const ExamStart = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handlePrev}
-                disabled={currentSection === 1 && currentQuestionInSection === 0}
+                disabled={currentQuestionIndex === 0}
                 className="px-6 py-3 rounded-lg bg-card border border-border hover:bg-muted font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <div className="flex items-center gap-2">
@@ -239,7 +231,7 @@ const ExamStart = () => {
                   className="px-8 py-3 rounded-lg gradient-primary text-white font-semibold"
                 >
                   <div className="flex items-center gap-2">
-                    {currentQuestionInSection === questionsPerSection - 1 ? 'Next Section' : 'Next'}
+                    Next
                     <ChevronRight className="w-5 h-5" />
                   </div>
                 </motion.button>
@@ -255,27 +247,24 @@ const ExamStart = () => {
             className="bg-card border border-border rounded-lg p-6 mt-8"
           >
             <h3 className="text-sm font-semibold mb-4 text-foreground">
-              Section {currentSection} - Question Navigator
+              Question Navigator
             </h3>
             <div className="grid grid-cols-10 gap-2">
-              {Array.from({ length: questionsPerSection }).map((_, index) => {
-                const questionIndex = (currentSection - 1) * questionsPerSection + index;
-                return (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentQuestionInSection(index)}
-                    className={`aspect-square rounded-lg font-semibold text-sm transition-all ${
-                      currentQuestionInSection === index
-                        ? "gradient-primary text-white border-2 border-primary"
-                        : answers[questionIndex] !== null
-                        ? "bg-green-500 text-white"
-                        : "bg-gray-200 hover:bg-gray-300 text-gray-700"
-                    } ${flagged[questionIndex] ? "ring-2 ring-purple-500" : ""}`}
-                  >
-                    {index + 1}
-                  </button>
-                );
-              })}
+              {questionSet.questions.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentQuestionIndex(index)}
+                  className={`aspect-square rounded-lg font-semibold text-sm transition-all ${
+                    currentQuestionIndex === index
+                      ? "gradient-primary text-white border-2 border-primary"
+                      : answers[index] !== null
+                      ? "bg-green-500 text-white"
+                      : "bg-gray-200 hover:bg-gray-300 text-gray-700"
+                  } ${flagged[index] ? "ring-2 ring-purple-500" : ""}`}
+                >
+                  {index + 1}
+                </button>
+              ))}
             </div>
             <div className="flex gap-6 mt-6 text-sm flex-wrap">
               <div className="flex items-center gap-2">

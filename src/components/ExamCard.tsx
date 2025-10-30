@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Clock, FileText, IndianRupee, Lock } from "lucide-react";
+import { Clock, FileText, IndianRupee, Lock, BookMarked } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Exam } from "@/data/mockData";
 
@@ -35,15 +35,21 @@ const ExamCard = ({ exam, index }: ExamCardProps) => {
 
         <div className="grid grid-cols-2 gap-4 mb-6">
           <div className="flex items-center gap-2 text-sm">
-            <FileText className="w-4 h-4 text-primary" />
+            <BookMarked className="w-4 h-4 text-primary" />
             <span className="text-muted-foreground">
-              {exam.sections} Sections
+              5 Question Sets
             </span>
           </div>
           <div className="flex items-center gap-2 text-sm">
+            <FileText className="w-4 h-4 text-primary" />
+            <span className="text-muted-foreground">
+              20 MCQs/Set
+            </span>
+          </div>
+          <div className="flex items-center gap-2 text-sm col-span-2">
             <Clock className="w-4 h-4 text-primary" />
             <span className="text-muted-foreground">
-              {exam.timePerSection} min/section
+              {exam.timeAllowed} minutes
             </span>
           </div>
         </div>

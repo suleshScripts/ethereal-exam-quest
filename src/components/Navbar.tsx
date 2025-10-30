@@ -15,7 +15,7 @@ const Navbar = () => {
     <motion.nav
       initial={{ y: -100 }}
       animate={{ y: 0 }}
-      className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/50"
+      className="fixed top-0 left-0 right-0 z-50 bg-transparent backdrop-blur-md border-b border-border/30"
     >
       <div className="container mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
@@ -27,7 +27,7 @@ const Navbar = () => {
             >
               <BookOpen className="w-6 h-6 text-white" />
             </motion.div>
-            <span className="text-2xl font-bold gradient-text">ExamPortal</span>
+            <span className="text-2xl font-extrabold gradient-text">ExamPortal</span>
           </Link>
 
           <div className="flex gap-2">
@@ -51,7 +51,7 @@ const Navbar = () => {
                     }`}
                   >
                     <Icon className="w-4 h-4" />
-                    <span className="font-medium">{item.label}</span>
+                    <span className="font-bold">{item.label}</span>
                   </motion.div>
                 </Link>
               );
