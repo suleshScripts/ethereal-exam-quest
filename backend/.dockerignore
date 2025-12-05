@@ -1,0 +1,12 @@
+node_modules
+dist
+.env
+.git
+*.md
+src
+tsconfig.json
+.vscode
+.idea
+*.log
+coverage
+.DS_Store
