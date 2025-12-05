@@ -14,19 +14,15 @@ export interface TokenPayload {
 }
 
 export function generateAccessToken(userId: string, email: string): string {
-  return jwt.sign(
-    { userId, email, type: 'access' } as TokenPayload,
-    JWT_SECRET,
-    { expiresIn: ACCESS_EXPIRY }
-  );
+  const payload = { userId, email, type: 'access' as const };
+  // @ts-ignore
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: ACCESS_EXPIRY });
 }
 
 export function generateRefreshToken(userId: string, email: string): string {
-  return jwt.sign(
-    { userId, email, type: 'refresh' } as TokenPayload,
-    JWT_SECRET,
-    { expiresIn: REFRESH_EXPIRY }
-  );
+  const payload = { userId, email, type: 'refresh' as const };
+  // @ts-ignore
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: REFRESH_EXPIRY });
 }
 
 export function verifyToken(token: string): TokenPayload {
