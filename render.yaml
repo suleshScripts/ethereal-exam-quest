@@ -4,8 +4,9 @@ services:
     env: node
     region: singapore
     plan: free
-    buildCommand: cd backend && npm install && npm run build
-    startCommand: cd backend && npm start
+    rootDir: backend
+    buildCommand: npm install && npm run build
+    startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
@@ -13,17 +14,23 @@ services:
         value: 8080
       - key: VITE_SUPABASE_URL
         value: https://ftssqrpnqwwuuskphgnz.supabase.co/
+      - key: VITE_SUPABASE_ANON_KEY
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0c3NxcnBucXd3dXVza3BoZ256Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ5NDI3NzgsImV4cCI6MjA4MDUxODc3OH0.5IEakfRUWyVwpeWkYO5G7ZJwTg0z5kebgZr2IPVWFks
       - key: SUPABASE_SERVICE_ROLE_KEY
-        sync: false
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0c3NxcnBucXd3dXVza3BoZ256Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NDk0Mjc3OCwiZXhwIjoyMDgwNTE4Nzc4fQ.xJbtp9Fg8mlE4vnBYY-RayP5iRy2jNEg2aBsHEKyBhw
       - key: JWT_SECRET
-        generateValue: true
+        value: your-super-secret-jwt-key-change-this-to-256-bit-random-string
+      - key: JWT_ACCESS_EXPIRY
+        value: 15m
+      - key: JWT_REFRESH_EXPIRY
+        value: 30d
       - key: EMAIL_USER
         value: suleshwaghmare2004@gmail.com
       - key: EMAIL_PASS
-        sync: false
+        value: zrxrnhxnhaflrcne
       - key: RAZORPAY_KEY_ID
         value: rzp_live_Rlz1BRY2tHLFgm
       - key: RAZORPAY_KEY_SECRET
-        sync: false
+        value: your_razorpay_secret_here
       - key: ALLOWED_ORIGINS
         value: https://clinomatrix.web.app,https://clinomatrix.firebaseapp.com

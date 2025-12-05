@@ -1,0 +1,79 @@
+RENDER ENVIRONMENT VARIABLES
+Copy and paste these into Render dashboard
+
+================================
+Variable 1:
+Key: NODE_ENV
+Value: production
+
+================================
+Variable 2:
+Key: PORT
+Value: 8080
+
+================================
+Variable 3:
+Key: VITE_SUPABASE_URL
+Value: https://ftssqrpnqwwuuskphgnz.supabase.co/
+
+================================
+Variable 4:
+Key: VITE_SUPABASE_ANON_KEY
+Value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0c3NxcnBucXd3dXVza3BoZ256Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ5NDI3NzgsImV4cCI6MjA4MDUxODc3OH0.5IEakfRUWyVwpeWkYO5G7ZJwTg0z5kebgZr2IPVWFks
+
+================================
+Variable 5:
+Key: SUPABASE_SERVICE_ROLE_KEY
+Value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0c3NxcnBucXd3dXVza3BoZ256Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NDk0Mjc3OCwiZXhwIjoyMDgwNTE4Nzc4fQ.xJbtp9Fg8mlE4vnBYY-RayP5iRy2jNEg2aBsHEKyBhw
+
+================================
+Variable 6:
+Key: JWT_SECRET
+Value: your-super-secret-jwt-key-change-this-to-256-bit-random-string
+
+================================
+Variable 7:
+Key: JWT_ACCESS_EXPIRY
+Value: 15m
+
+================================
+Variable 8:
+Key: JWT_REFRESH_EXPIRY
+Value: 30d
+
+================================
+Variable 9:
+Key: EMAIL_USER
+Value: suleshwaghmare2004@gmail.com
+
+================================
+Variable 10:
+Key: EMAIL_PASS
+Value: zrxrnhxnhaflrcne
+
+================================
+Variable 11:
+Key: RAZORPAY_KEY_ID
+Value: rzp_live_Rlz1BRY2tHLFgm
+
+================================
+Variable 12:
+Key: RAZORPAY_KEY_SECRET
+Value: your_razorpay_secret_here
+
+================================
+Variable 13:
+Key: ALLOWED_ORIGINS
+Value: https://clinomatrix.web.app,https://clinomatrix.firebaseapp.com
+
+================================
+
+TOTAL: 13 environment variables
+
+HOW TO USE:
+1. In Render dashboard, click "Advanced"
+2. Click "Add Environment Variable"
+3. Copy the Key from above
+4. Copy the Value from above
+5. Repeat for all 13 variables
+6. Click "Create Web Service"
