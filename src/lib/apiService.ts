@@ -174,6 +174,17 @@ export async function logoutAll() {
     return response.json();
 }
 
+export async function resetPassword(email: string, password: string) {
+    const response = await fetch(`${API_URL}/api/auth/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+    });
+
+    const result = await response.json();
+    return result;
+}
+
 // ==================== USER ENDPOINTS ====================
 
 export async function getProfile() {
@@ -226,6 +237,7 @@ export default {
     login,
     logout,
     logoutAll,
+    resetPassword,
     getProfile,
     updateProfile,
     getUserPlans,

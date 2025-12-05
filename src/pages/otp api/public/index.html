@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>OTP Verification</title>
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg: #0f1724;
+            --card: #0b1220;
+            --accent: #7c3aed;
+            --muted: #94a3b8;
+            --glass: rgba(255, 255, 255, 0.04);
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(180deg, #061022 0%, #071428 100%);
+            color: #e6eef8;
+            padding: 24px;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 420px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+            border-radius: 12px;
+            padding: 26px;
+            box-shadow: 0 10px 30px rgba(2, 6, 23, 0.6);
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        h1 {
+            margin: 0 0 6px;
+            font-size: 20px;
+            font-weight: 600
+        }
+
+        p.subtitle {
+            margin: 0 0 18px;
+            color: var(--muted);
+            font-size: 13px
+        }
+
+        .field {
+            margin-bottom: 12px
+        }
+
+        label {
+            display: block;
+            color: var(--muted);
+            font-size: 13px;
+            margin-bottom: 6px
+        }
+
+        input[type="email"],
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            background: var(--card);
+            color: #e6eef8;
+            outline: none;
+            font-size: 14px;
+        }
+
+        input:focus {
+            box-shadow: 0 6px 18px rgba(124, 58, 237, 0.12);
+            border-color: rgba(124, 58, 237, 0.8)
+        }
+
+        .row {
+            display: flex;
+            gap: 10px
+        }
+
+        button {
+            display: inline-block;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 0;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, var(--accent), #5b21b6);
+            color: white;
+            flex: 1;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--muted);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            flex: 1;
+        }
+
+        .note {
+            color: var(--muted);
+            font-size: 13px;
+            margin-top: 12px
+        }
+
+        .result {
+            margin-top: 14px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            background: var(--glass);
+            color: #e6eef8;
+            font-size: 14px;
+            min-height: 34px;
+            display: flex;
+            align-items: center;
+        }
+
+        @media (max-width:420px) {
+            .card {
+                padding: 18px
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card" role="main">
+        <h1>Verify your email</h1>
+        <p class="subtitle">Enter your email to receive a one-time code. The code expires in 5 minutes.</p>
+
+        <div class="field">
+            <label for="email">Email</label>
+            <input id="email" type="email" placeholder="you@example.com" autocomplete="email" />
+        </div>
+
+        <div class="row" style="margin-bottom:12px">
+            <button class="btn-primary" onclick="sendOtp()">Send OTP</button>
+            <button class="btn-ghost" onclick="clearFields()">Clear</button>
+        </div>
+
+        <div class="field">
+            <label for="otp">OTP</label>
+            <input id="otp" type="text" placeholder="Enter 6-digit code" inputmode="numeric" />
+        </div>
+
+        <div class="row">
+            <button class="btn-primary" onclick="verifyOtp()">Verify</button>
+            <button class="btn-ghost" onclick="resendInfo()">Need help?</button>
+        </div>
+
+        <div id="result" class="result">Ready</div>
+
+        <p class="note">Never share the code with anyone. This is a demo server — don't use it in production without
+            securing secrets and switching to a proper DB/queue provider.</p>
+    </div>
+
+    <script>
+        async function sendOtp() {
+            setResult("Sending…");
+            const email = document.getElementById("email").value.trim();
+            if (!email) { setResult("Enter your email first."); return; }
+
+            try {
+                const res = await fetch("/send-otp", {
+                    method: "POST",
+                    headers: { "content-type": "application/json" },
+                    body: JSON.stringify({ email })
+                });
+                const data = await res.json();
+                setResult(data.message || JSON.stringify(data));
+            } catch (err) {
+                setResult("Network or server error. Check console.");
+                console.error(err);
+            }
+        }
+
+        async function verifyOtp() {
+            setResult("Verifying…");
+            const email = document.getElementById("email").value.trim();
+            const otp = document.getElementById("otp").value.trim();
+            if (!email || !otp) { setResult("Provide email and OTP."); return; }
+
+            try {
+                const res = await fetch("/verify-otp", {
+                    method: "POST",
+                    headers: { "content-type": "application/json" },
+                    body: JSON.stringify({ email, otp })
+                });
+                const data = await res.json();
+                setResult(data.message || JSON.stringify(data));
+            } catch (err) {
+                setResult("Network or server error. Check console.");
+                console.error(err);
+            }
+        }
+
+        function setResult(msg) {
+            document.getElementById("result").innerText = msg;
+        }
+        function clearFields() { document.getElementById("email").value = ""; document.getElementById("otp").value = ""; setResult("Cleared"); }
+        function resendInfo() { setResult("If emails don't arrive: check spam, verify app-password, and ensure 2-step verification is enabled."); }
+    </script>
+</body>
+
+</html>

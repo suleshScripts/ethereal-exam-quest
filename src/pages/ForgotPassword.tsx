@@ -5,7 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabaseService } from '@/lib/supabaseService';
-import { generateOTP, sendPasswordResetOTP, storeOTP } from '@/lib/emailService';
+import { sendOTP } from '@/lib/otpApiService';
 
 type Step = 'email' | 'otp' | 'password';
 
@@ -57,13 +57,11 @@ const ForgotPassword = () => {
                 return;
             }
 
-            // Store user name for OTP email
+            // Store user name for display
             setUserName(student.name);
 
-            // Generate and send OTP
-            const otp = generateOTP();
-            await sendPasswordResetOTP(email, student.name, otp);
-            storeOTP(email, otp, 5); // 5-minute expiry
+            // Send OTP using custom OTP API (include name for email personalization)
+            await sendOTP(email, student.name);
 
             toast({
                 title: 'Verification Code Sent!',
@@ -85,33 +83,45 @@ const ForgotPassword = () => {
     };
 
     // Step 2: OTP Verification
-    const handleOTPVerify = () => {
+    const handleOTPVerify = async () => {
         if (!otpCode || otpCode.length !== 6) {
             setError('Please enter a valid 6-digit code');
             return;
         }
 
+        setLoading(true);
         setError('');
 
-        // Verify OTP
-        const result = verifyOTP(email, otpCode);
+        try {
+            // Verify OTP using custom OTP API
+            const result = await verifyOTP(email, otpCode);
 
-        if (!result.valid) {
-            setError(result.message);
+            if (!result.valid) {
+                setError(result.message);
+                toast({
+                    title: 'Invalid Code',
+                    description: result.message,
+                    variant: 'destructive',
+                });
+                return;
+            }
+
+            // Move to password reset step
             toast({
-                title: 'Invalid Code',
-                description: result.message,
+                title: 'Verified!',
+                description: 'Please enter your new password',
+            });
+            setCurrentStep('password');
+        } catch (err: any) {
+            setError(err.message || 'Failed to verify OTP');
+            toast({
+                title: 'Verification Failed',
+                description: err.message || 'Failed to verify OTP',
                 variant: 'destructive',
             });
-            return;
+        } finally {
+            setLoading(false);
         }
-
-        // Move to password reset step
-        toast({
-            title: 'Verified!',
-            description: 'Please enter your new password',
-        });
-        setCurrentStep('password');
     };
 
     // Resend OTP
@@ -121,9 +131,8 @@ const ForgotPassword = () => {
         setOtpCode('');
 
         try {
-            const otp = generateOTP();
-            await sendPasswordResetOTP(email, userName, otp);
-            storeOTP(email, otp, 5);
+            // Resend OTP using custom OTP API (include name for email personalization)
+            await sendOTP(email, userName);
 
             toast({
                 title: 'Code Resent!',
@@ -132,7 +141,7 @@ const ForgotPassword = () => {
         } catch (err: any) {
             toast({
                 title: 'Error',
-                description: 'Failed to resend code',
+                description: err.message || 'Failed to resend code',
                 variant: 'destructive',
             });
         } finally {

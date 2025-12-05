@@ -110,9 +110,9 @@ const AdminLogin = () => {
         </form>
 
         <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-sm font-medium text-blue-900 mb-2">Default Admin Credentials:</p>
-          <p className="text-sm text-blue-700">Email: admin@example.com</p>
-          <p className="text-sm text-blue-700">Password: admin123</p>
+          <p className="text-sm font-medium text-blue-900 mb-2">Admin Credentials:</p>
+          <p className="text-sm text-blue-700">Email: suleshw143@gmail.com</p>
+          <p className="text-sm text-blue-700">Password: sulesh123456</p>
         </div>
         
         <div className="mt-4 text-center text-sm text-gray-600">

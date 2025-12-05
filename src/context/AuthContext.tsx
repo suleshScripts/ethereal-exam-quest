@@ -1,6 +1,9 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import * as api from '@/lib/apiService';
 import logger from '@/lib/logger';
+import { verifyOTP as verifyOTPApi } from '@/lib/otpApiService';
+import { supabaseService } from '@/lib/supabaseService';
+import { hashPassword } from '@/lib/passwordUtils';
 
 interface User {
   id: string;
@@ -23,6 +26,8 @@ interface AuthContextType {
   signIn: (identifier: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  verifyOTP: (email: string, otp: string) => Promise<{ valid: boolean; message: string }>;
+  resetPassword: (email: string, newPassword: string) => Promise<void>;
 }
 
 interface SignUpData {
@@ -156,6 +161,42 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // Verify OTP code using custom OTP API
+  const verifyOTP = async (email: string, otp: string): Promise<{ valid: boolean; message: string }> => {
+    try {
+      logger.debug('[AuthContext] Verifying OTP for:', email);
+      const response = await verifyOTPApi(email, otp);
+      
+      if (response.success) {
+        return { valid: true, message: 'OTP verified successfully!' };
+      } else {
+        return { valid: false, message: response.message || 'Invalid OTP' };
+      }
+    } catch (error: any) {
+      logger.error('[AuthContext] OTP verification error:', error);
+      return { valid: false, message: error.message || 'Failed to verify OTP' };
+    }
+  };
+
+  // Reset password after OTP verification
+  const resetPassword = async (email: string, newPassword: string): Promise<void> => {
+    try {
+      logger.debug('[AuthContext] Resetting password for:', email);
+      
+      // Call backend API to reset password (uses bcrypt)
+      const response = await api.resetPassword(email, newPassword);
+      
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to reset password');
+      }
+      
+      logger.debug('[AuthContext] Password reset successful');
+    } catch (error: any) {
+      logger.error('[AuthContext] Password reset error:', error);
+      throw new Error(error.message || 'Failed to reset password');
+    }
+  };
+
   const auth: AuthState = {
     isAuthenticated: !!user && api.isAuthenticated(),
     user,
@@ -163,7 +204,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ auth, signUp, signIn, signOut, refreshUser }}>
+    <AuthContext.Provider value={{ auth, signUp, signIn, signOut, refreshUser, verifyOTP, resetPassword }}>
       {children}
     </AuthContext.Provider>
   );

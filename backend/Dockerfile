@@ -5,14 +5,21 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install production dependencies only
-RUN npm ci --only=production
+# Install ALL dependencies (including devDependencies for build)
+RUN npm ci
 
-# Copy compiled TypeScript
-COPY dist ./dist
+# Copy source code
+COPY . .
+
+# Build TypeScript
+RUN npm run build
+
+# Remove devDependencies
+RUN npm prune --production
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
+RUN chown -R nodejs:nodejs /app
 USER nodejs
 
 EXPOSE 8080
