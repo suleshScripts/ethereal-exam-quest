@@ -1,5 +1,5 @@
-import express from 'express';
-import { authenticate, AuthRequest } from '../middleware/auth';
+import express, { Request, Response } from 'express';
+import { authenticate } from '../middleware/auth';
 import { supabase } from '../config/supabase';
 import logger from '../utils/logger';
 
@@ -9,7 +9,7 @@ const router = express.Router();
 router.use(authenticate);
 
 // Get user profile
-router.get('/profile', async (req: AuthRequest, res) => {
+router.get('/profile', async (req: Request, res: Response) => {
   try {
     const { data: student, error } = await supabase
       .from('students')
@@ -38,7 +38,7 @@ router.get('/profile', async (req: AuthRequest, res) => {
 });
 
 // Update user profile
-router.put('/profile', async (req: AuthRequest, res) => {
+router.put('/profile', async (req: Request, res: Response) => {
   try {
     const { name, phone, username } = req.body;
     const updates: any = {};
@@ -91,7 +91,7 @@ router.put('/profile', async (req: AuthRequest, res) => {
 });
 
 // Get user plans
-router.get('/plans', async (req: AuthRequest, res) => {
+router.get('/plans', async (req: Request, res: Response) => {
   try {
     const { data: student } = await supabase
       .from('students')
@@ -133,7 +133,7 @@ router.get('/plans', async (req: AuthRequest, res) => {
 });
 
 // Get active plans
-router.get('/plans/active', async (req: AuthRequest, res) => {
+router.get('/plans/active', async (req: Request, res: Response) => {
   try {
     const { data: student } = await supabase
       .from('students')
@@ -178,7 +178,7 @@ router.get('/plans/active', async (req: AuthRequest, res) => {
 });
 
 // Get exam history
-router.get('/exam-history', async (req: AuthRequest, res) => {
+router.get('/exam-history', async (req: Request, res: Response) => {
   try {
     const { data: student } = await supabase
       .from('students')
@@ -220,7 +220,7 @@ router.get('/exam-history', async (req: AuthRequest, res) => {
 });
 
 // Get exam progress
-router.get('/exam-progress/:examId', async (req: AuthRequest, res) => {
+router.get('/exam-progress/:examId', async (req: Request, res: Response) => {
   try {
     const { examId } = req.params;
 
