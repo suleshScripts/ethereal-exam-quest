@@ -115,7 +115,6 @@ export async function signup(data: {
     phone: string;
     password: string;
 }) {
-    console.log('=== FRONTEND SENDING ===', data);
     const response = await fetch(`${API_URL}/api/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

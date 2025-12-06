@@ -11,6 +11,7 @@ import {
   Target,
   Crown,
   CheckCircle,
+  ShieldCheck,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { subscriptionPlans } from "@/data/mockData";
@@ -19,6 +20,7 @@ import { StatCardSkeleton } from "@/components/skeletons/StatCardSkeleton";
 import { PerformanceChartSkeleton } from "@/components/skeletons/PerformanceChartSkeleton";
 import { Skeleton } from "@/components/ui/skeleton";
 import { adminService } from "@/admin/lib/adminService";
+import EmailVerificationModal from "@/components/auth/EmailVerificationModal";
 
 const Profile = () => {
   const { auth } = useAuth();
@@ -30,6 +32,7 @@ const Profile = () => {
   const [purchasedPlans, setPurchasedPlans] = useState<any[]>([]);
   const [subjects, setSubjects] = useState<any[]>([]);
   const [globalRank, setGlobalRank] = useState<number>(1);
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
 
   useEffect(() => {
     const loadProfileData = async () => {
@@ -89,8 +92,25 @@ const Profile = () => {
   const avatarFallback = "/avatar-placeholder.png";
   const memberSince = studentInfo?.created_at ? new Date(studentInfo.created_at) : new Date();
 
+  const handleVerified = () => {
+    // Refresh student info to show verified status
+    if (user) {
+      supabaseService.getStudentByPhone(user.phone).then(setStudentInfo);
+    }
+    setShowVerificationModal(false);
+  };
+
   return (
-    <div className="min-h-screen pt-20 sm:pt-24 pb-16">
+    <>
+      <EmailVerificationModal
+        isOpen={showVerificationModal}
+        onClose={() => setShowVerificationModal(false)}
+        email={user?.email || ''}
+        name={user?.name || ''}
+        onVerified={handleVerified}
+      />
+      
+      <div className="min-h-screen pt-20 sm:pt-24 pb-16">
       <div className="container mx-auto px-4 sm:px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -136,12 +156,27 @@ const Profile = () => {
                     <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-6 text-sm sm:text-base text-muted-foreground">
                       <div className="flex items-center gap-2">
                         <Mail className="w-4 h-4" />
-                        Phone: {user.phone}
+                        {user.email || `Phone: ${user.phone}`}
                       </div>
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4" />
                         Joined {memberSince ? memberSince.toLocaleDateString("en-IN", { month: "short", year: "numeric" }) : ""}
                       </div>
+                      {user.email && !studentInfo?.email_verified && (
+                        <button
+                          onClick={() => setShowVerificationModal(true)}
+                          className="flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-500/10 text-yellow-600 hover:bg-yellow-500/20 transition-colors text-xs sm:text-sm"
+                        >
+                          <ShieldCheck className="w-4 h-4" />
+                          Verify Email
+                        </button>
+                      )}
+                      {user.email && studentInfo?.email_verified && (
+                        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 text-green-600 text-xs sm:text-sm">
+                          <CheckCircle className="w-4 h-4" />
+                          Email Verified
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -463,6 +498,7 @@ const Profile = () => {
         </motion.div>
       </div>
     </div>
+    </>
   );
 };
 
