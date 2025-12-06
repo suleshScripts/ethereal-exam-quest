@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 import { User, Phone, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import EmailVerificationModal from '@/components/auth/EmailVerificationModal';
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ const Signup = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -93,13 +95,11 @@ const Signup = () => {
 
       toast({
         title: 'Account Created Successfully!',
-        description: 'You have been automatically logged in',
+        description: 'Please verify your email to continue',
       });
 
-      // Redirect to home or dashboard
-      setTimeout(() => {
-        navigate('/');
-      }, 1500);
+      // Show verification modal
+      setShowVerificationModal(true);
     } catch (err: any) {
       setError(err.message || 'Failed to create account');
       toast({
@@ -112,9 +112,28 @@ const Signup = () => {
     }
   };
 
+  const handleVerified = () => {
+    toast({
+      title: 'Email Verified! ✅',
+      description: 'Redirecting to dashboard...',
+    });
+    setTimeout(() => {
+      navigate('/');
+    }, 1500);
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/10 py-8">
-      <div className="w-full max-w-md mx-auto p-6">
+    <>
+      <EmailVerificationModal
+        isOpen={showVerificationModal}
+        onClose={() => setShowVerificationModal(false)}
+        email={formData.email}
+        name={formData.fullName}
+        onVerified={handleVerified}
+      />
+
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/10 py-8">
+        <div className="w-full max-w-md mx-auto p-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -293,6 +312,7 @@ const Signup = () => {
         </motion.div>
       </div>
     </div>
+    </>
   );
 };
 

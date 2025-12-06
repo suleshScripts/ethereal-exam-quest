@@ -6,6 +6,7 @@ import authRoutes from './routes/auth';
 import userRoutes from './routes/user';
 import otpRoutes from './routes/otp';
 import paymentRoutes from './routes/payment';
+import verificationRoutes from './routes/verification';
 import { errorHandler } from './middleware/errorHandler';
 import logger from './utils/logger';
 
@@ -72,6 +73,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/otp', otpRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/verification', verificationRoutes);
 
 // Error handling
 app.use(errorHandler);
