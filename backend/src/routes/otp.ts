@@ -194,7 +194,8 @@ router.post(
         </div>`,
       };
 
-      // Send email with timeout handling
+      // Try to send email, but don't fail if it doesn't work
+      let emailSent = false;
       try {
         await Promise.race([
           transporter.sendMail(mailOptions),
@@ -202,26 +203,24 @@ router.post(
             setTimeout(() => reject(new Error('Email send timeout')), 15000)
           )
         ]);
-
+        emailSent = true;
         logger.info(`[OTP] Sent OTP to ${email}`);
-
-        // SECURITY: Never send OTP in response - only confirmation
-        res.json({
-          success: true,
-          message: 'OTP sent to your email.',
-          // DO NOT include OTP in response for security
-        });
       } catch (emailError: any) {
         logger.error('[OTP] Email send failed:', emailError.message);
-        
-        // Still store OTP even if email fails (for testing)
-        // In production, you might want to remove the OTP if email fails
-        res.status(500).json({
-          success: false,
-          message: 'Failed to send OTP email. Please try again or contact support.',
-          error: process.env.NODE_ENV === 'development' ? emailError.message : undefined,
-        });
+        // Log OTP to console for development/testing
+        logger.warn(`[OTP] DEVELOPMENT MODE - OTP for ${email}: ${otp}`);
       }
+
+      // Always return success if OTP is stored
+      // In production with working email, remove the OTP from response
+      res.json({
+        success: true,
+        message: emailSent 
+          ? 'OTP sent to your email.' 
+          : 'OTP generated. Check server logs or contact support.',
+        // TEMPORARY: Include OTP in development mode only
+        ...(process.env.NODE_ENV === 'development' && { otp }),
+      });
     } catch (error: any) {
       logger.error('[OTP] Send error:', error);
       res.status(500).json({

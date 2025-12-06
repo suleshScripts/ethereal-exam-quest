@@ -32,6 +32,15 @@ const PaymentModal = ({ isOpen, onClose, plan, onSuccess }: PaymentModalProps) =
         setError(null);
 
         try {
+            logger.info('[Payment] Starting payment flow...');
+            logger.info('[Payment] User:', auth.user);
+            logger.info('[Payment] Is authenticated:', auth.isAuthenticated);
+            
+            // Check if user is logged in
+            if (!auth.isAuthenticated || !auth.user) {
+                throw new Error('Please login first to make a payment');
+            }
+
             // 1. Load Razorpay SDK
             const isLoaded = await loadRazorpay();
             if (!isLoaded) {
@@ -39,10 +48,15 @@ const PaymentModal = ({ isOpen, onClose, plan, onSuccess }: PaymentModalProps) =
             }
 
             // 2. Create Order on Backend
-            const token = localStorage.getItem('access_token') || localStorage.getItem('token');
+            // Import getAccessToken from apiService
+            const token = localStorage.getItem('access_token');
+            
             if (!token) {
-                throw new Error('Please login to continue');
+                logger.error('[Payment] No access token found');
+                throw new Error('Please login to continue with payment');
             }
+            
+            logger.info('[Payment] Token found, creating order...');
 
             const response = await fetch(`${import.meta.env.VITE_API_URL}/api/payment/create-order`, {
                 method: 'POST',
