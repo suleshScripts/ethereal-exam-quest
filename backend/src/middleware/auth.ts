@@ -11,7 +11,7 @@ export interface AuthRequest extends Request {
   };
 }
 
-export async function authenticate(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+export async function authenticate(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const authHeader = req.headers.authorization;
 
@@ -77,7 +77,7 @@ export async function authenticate(req: AuthRequest, res: Response, next: NextFu
       .update({ last_used_at: new Date().toISOString() })
       .eq('session_id', payload.sessionId);
 
-    req.user = {
+    (req as AuthRequest).user = {
       userId: payload.userId,
       email: payload.email,
       sessionId: payload.sessionId,
