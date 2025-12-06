@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/auth';
 import userRoutes from './routes/user';
 import otpRoutes from './routes/otp';
+import paymentRoutes from './routes/payment';
 import { errorHandler } from './middleware/errorHandler';
 import logger from './utils/logger';
 
@@ -70,6 +71,7 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/otp', otpRoutes);
+app.use('/api/payment', paymentRoutes);
 
 // Error handling
 app.use(errorHandler);
