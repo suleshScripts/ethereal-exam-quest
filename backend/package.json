@@ -20,6 +20,7 @@
     "author": "DMLT Academy",
     "license": "MIT",
     "dependencies": {
+        "@sendgrid/mail": "^8.1.6",
         "@supabase/supabase-js": "^2.39.0",
         "@types/nodemailer": "^7.0.4",
         "bcryptjs": "^2.4.3",

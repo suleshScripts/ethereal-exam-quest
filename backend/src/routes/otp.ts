@@ -1,9 +1,16 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import nodemailer from 'nodemailer';
+import sgMail from '@sendgrid/mail';
 import rateLimit from 'express-rate-limit';
 import { body, validationResult } from 'express-validator';
 import logger from '../utils/logger';
+
+// Initialize SendGrid if API key is available
+if (process.env.SENDGRID_API_KEY) {
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+  logger.info('✅ SendGrid initialized');
+}
 
 const router = express.Router();
 
@@ -194,32 +201,59 @@ router.post(
         </div>`,
       };
 
-      // Try to send email, but don't fail if it doesn't work
+      // Try to send email using SendGrid first, then fall back to SMTP
       let emailSent = false;
-      try {
-        await Promise.race([
-          transporter.sendMail(mailOptions),
-          new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Email send timeout')), 15000)
-          )
-        ]);
-        emailSent = true;
-        logger.info(`[OTP] Sent OTP to ${email}`);
-      } catch (emailError: any) {
-        logger.error('[OTP] Email send failed:', emailError.message);
-        // Log OTP to console for development/testing
-        logger.warn(`[OTP] DEVELOPMENT MODE - OTP for ${email}: ${otp}`);
+      let emailMethod = 'none';
+
+      // Try SendGrid first (works on Render free tier)
+      if (process.env.SENDGRID_API_KEY && process.env.SENDGRID_FROM_EMAIL) {
+        try {
+          const msg = {
+            to: email,
+            from: process.env.SENDGRID_FROM_EMAIL,
+            subject: 'Your Verification Code - DMLT Academy',
+            html: mailOptions.html,
+          };
+
+          await sgMail.send(msg);
+          emailSent = true;
+          emailMethod = 'SendGrid';
+          logger.info(`[OTP] Sent OTP to ${email} via SendGrid`);
+        } catch (sgError: any) {
+          logger.error('[OTP] SendGrid failed:', sgError.message);
+        }
+      }
+
+      // Fall back to SMTP if SendGrid not configured or failed
+      if (!emailSent) {
+        try {
+          await Promise.race([
+            transporter.sendMail(mailOptions),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Email send timeout')), 15000)
+            )
+          ]);
+          emailSent = true;
+          emailMethod = 'SMTP';
+          logger.info(`[OTP] Sent OTP to ${email} via SMTP`);
+        } catch (smtpError: any) {
+          logger.error('[OTP] SMTP failed:', smtpError.message);
+        }
+      }
+
+      // Log OTP to console if email failed (for development/testing)
+      if (!emailSent) {
+        logger.warn(`[OTP] ⚠️ EMAIL FAILED - OTP for ${email}: ${otp}`);
+        logger.warn('[OTP] Configure SENDGRID_API_KEY for reliable email delivery');
       }
 
       // Always return success if OTP is stored
-      // In production with working email, remove the OTP from response
       res.json({
         success: true,
         message: emailSent 
-          ? 'OTP sent to your email.' 
-          : 'OTP generated. Check server logs or contact support.',
-        // TEMPORARY: Include OTP in development mode only
-        ...(process.env.NODE_ENV === 'development' && { otp }),
+          ? `OTP sent to your email via ${emailMethod}.` 
+          : 'OTP generated. Check your email or contact support if not received.',
+        // NEVER include OTP in response for security
       });
     } catch (error: any) {
       logger.error('[OTP] Send error:', error);

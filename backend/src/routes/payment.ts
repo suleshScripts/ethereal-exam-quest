@@ -6,16 +6,39 @@ import logger from '../utils/logger';
 
 const router = express.Router();
 
-// Initialize Razorpay
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID || '',
-  key_secret: process.env.RAZORPAY_KEY_SECRET || '',
-});
+// Initialize Razorpay with validation
+let razorpay: Razorpay | null = null;
+
+if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
+  try {
+    razorpay = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET,
+    });
+    logger.info('✅ Razorpay initialized');
+  } catch (error: any) {
+    logger.error('❌ Razorpay initialization failed:', error.message);
+  }
+} else {
+  logger.warn('⚠️ Razorpay keys not configured. Payment will not work.');
+}
 
 // Create Razorpay order
 router.post('/create-order', authenticate, async (req: Request, res: Response) => {
   try {
+    // Check if Razorpay is configured
+    if (!razorpay) {
+      logger.error('[Payment] Razorpay not initialized');
+      return res.status(503).json({
+        success: false,
+        error: 'Payment service not configured',
+        message: 'Razorpay keys are missing or invalid',
+      });
+    }
+
     const { amount, currency = 'INR', planId, planName } = req.body;
+
+    logger.info(`[Payment] Creating order for ${req.user?.email}: ₹${amount}`);
 
     if (!amount || amount <= 0) {
       return res.status(400).json({

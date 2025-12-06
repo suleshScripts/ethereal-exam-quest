@@ -31,6 +31,6 @@ services:
       - key: RAZORPAY_KEY_ID
         value: rzp_live_Rlz1BRY2tHLFgm
       - key: RAZORPAY_KEY_SECRET
-        value: your_razorpay_secret_here
+        value: axNRQm0pmgH90D8mHnIvyRHZ
       - key: ALLOWED_ORIGINS
         value: https://clinomatrix.web.app,https://clinomatrix.firebaseapp.com
