@@ -33,10 +33,13 @@ const transporter = nodemailer.createTransport({
   },
   tls: {
     rejectUnauthorized: false // Allow self-signed certificates
-  }
+  },
+  connectionTimeout: 10000, // 10 seconds
+  greetingTimeout: 10000,
+  socketTimeout: 10000,
 });
 
-// Verify transporter on startup
+// Verify transporter on startup (don't block server start)
 transporter.verify().then(() => {
   logger.info('✅ SMTP ready — transporter verified.');
 }).catch(err => {
@@ -191,16 +194,34 @@ router.post(
         </div>`,
       };
 
-      await transporter.sendMail(mailOptions);
+      // Send email with timeout handling
+      try {
+        await Promise.race([
+          transporter.sendMail(mailOptions),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Email send timeout')), 15000)
+          )
+        ]);
 
-      logger.info(`[OTP] Sent OTP to ${email}`);
+        logger.info(`[OTP] Sent OTP to ${email}`);
 
-      // SECURITY: Never send OTP in response - only confirmation
-      res.json({
-        success: true,
-        message: 'OTP sent to your email.',
-        // DO NOT include OTP in response for security
-      });
+        // SECURITY: Never send OTP in response - only confirmation
+        res.json({
+          success: true,
+          message: 'OTP sent to your email.',
+          // DO NOT include OTP in response for security
+        });
+      } catch (emailError: any) {
+        logger.error('[OTP] Email send failed:', emailError.message);
+        
+        // Still store OTP even if email fails (for testing)
+        // In production, you might want to remove the OTP if email fails
+        res.status(500).json({
+          success: false,
+          message: 'Failed to send OTP email. Please try again or contact support.',
+          error: process.env.NODE_ENV === 'development' ? emailError.message : undefined,
+        });
+      }
     } catch (error: any) {
       logger.error('[OTP] Send error:', error);
       res.status(500).json({
