@@ -145,7 +145,7 @@ router.post(
                         </h1>
 
                         <p style="margin-top:10px;font-size:15px;color:#063056;">
-                          Secure login for DMLT Academy
+                          Password Reset for DMLT Academy
                         </p>
                       </div>
                     </td>
@@ -158,7 +158,7 @@ router.post(
                       </p>
 
                       <p style="font-size:15px;line-height:1.6;margin:0 0 25px;">
-                        Your verification code for <strong>DMLT Academy</strong> is:
+                        Your password reset code for <strong>DMLT Academy</strong> is:
                       </p>
 
                       <div style="

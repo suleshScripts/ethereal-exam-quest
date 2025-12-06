@@ -117,7 +117,7 @@ router.post(
       const mailOptions = {
         from: `"DMLT Academy" <${process.env.EMAIL_USER}>`,
         to: email,
-        subject: 'Verify Your Email - DMLT Academy',
+        subject: 'Your Verification Code - DMLT Academy',
         html: `
         <div style="margin:0;padding:0;background:#f4f5f7;">
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" 
@@ -130,16 +130,24 @@ router.post(
                   <tr>
                     <td style="padding:0;margin:0;">
                       <div style="
-                        background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        background:url('https://i.ibb.co/yBXrWc3H/final-hero-bg.jpg');
+                        background-size:cover;
+                        background-position:center;
                         padding:40px 20px;
                         text-align:center;
                         color:white;">
                         
-                        <h1 style="margin:0;font-size:28px;letter-spacing:0.5px;font-weight:700;">
-                          Verify Your Email
+                        <img 
+                          src="https://i.ibb.co/W4jLJpcz/dmlt-logo.jpg" 
+                          alt="DMLT Academy" 
+                          style="width:180px;margin-bottom:20px;border-radius:6px;"
+                        />
+
+                        <h1 style="margin:0;font-size:26px;letter-spacing:0.5px;font-weight:700;color:#063056;">
+                          Verification Code
                         </h1>
 
-                        <p style="margin-top:10px;font-size:15px;opacity:0.9;">
+                        <p style="margin-top:10px;font-size:15px;color:#063056;">
                           Welcome to DMLT Academy!
                         </p>
                       </div>
@@ -147,39 +155,34 @@ router.post(
                   </tr>
 
                   <tr>
-                    <td style="padding:40px;color:#333333;">
+                    <td style="padding:30px 40px;color:#333333;">
                       <p style="font-size:16px;margin:0 0 20px 0;">
                         Hi <strong>${userName}</strong>,
                       </p>
 
                       <p style="font-size:15px;line-height:1.6;margin:0 0 25px;">
-                        Thank you for signing up! Please verify your email address to complete your registration.
-                      </p>
-
-                      <p style="font-size:15px;line-height:1.6;margin:0 0 25px;">
-                        Your verification code is:
+                        Thank you for signing up! Your verification code for <strong>DMLT Academy</strong> is:
                       </p>
 
                       <div style="
                         background:#f1f5f9;
-                        border:2px solid #667eea;
+                        border:1px solid #dbe3eb;
                         border-radius:8px;
-                        padding:20px;
+                        padding:18px;
                         text-align:center;
-                        font-size:36px;
+                        font-size:32px;
                         font-weight:700;
-                        letter-spacing:6px;
-                        color:#667eea;
-                        margin-bottom:25px;">
+                        letter-spacing:4px;
+                        color:#111827;">
                         ${code}
                       </div>
 
-                      <p style="font-size:15px;line-height:1.6;margin:0 0 20px;">
+                      <p style="font-size:15px;line-height:1.6;margin:25px 0 20px;">
                         This code will expire in <strong>10 minutes</strong>.
                       </p>
 
                       <p style="font-size:14px;color:#6b7280;line-height:1.6;margin-bottom:30px;">
-                        If you didn't create an account, please ignore this email.
+                        If you didn't request this code, simply ignore this email.
                       </p>
 
                       <p style="font-size:15px;margin:0;">
@@ -190,7 +193,7 @@ router.post(
                   </tr>
 
                   <tr>
-                    <td style="background:#f8fafc;padding:20px;text-align:center;color:#94a3b8;font-size:12px;">
+                    <td style="background:#f8fafc;padding:18px;text-align:center;color:#94a3b8;font-size:12px;">
                       © ${new Date().getFullYear()} DMLT Academy. All rights reserved.
                     </td>
                   </tr>

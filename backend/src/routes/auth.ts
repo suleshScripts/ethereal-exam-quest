@@ -1,12 +1,40 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import { body, validationResult } from 'express-validator';
 import rateLimit from 'express-rate-limit';
+import nodemailer from 'nodemailer';
 import { supabase } from '../config/supabase';
 import { generateAccessToken, generateRefreshToken, verifyToken } from '../utils/jwt';
 import logger from '../utils/logger';
 
 const router = express.Router();
+
+// In-memory verification store (shared with verification routes)
+export const verificationStore: Record<string, {
+  code_hash: string;
+  expiresAt: number;
+  used: boolean;
+  attempts: number;
+  createdAt: number;
+}> = {};
+
+// Create transporter for Gmail
+const transporter = nodemailer.createTransport({
+  host: 'smtp.gmail.com',
+  port: 587,
+  secure: false,
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+  tls: {
+    rejectUnauthorized: false
+  },
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 10000,
+});
 
 // Rate limiting for auth endpoints
 const authLimiter = rateLimit({
@@ -14,6 +42,117 @@ const authLimiter = rateLimit({
   max: 10, // 10 requests per window
   message: 'Too many requests, please try again later',
 });
+
+function generateVerificationCode(): string {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+async function sendVerificationEmail(email: string, name: string, code: string): Promise<boolean> {
+  const mailOptions = {
+    from: `"DMLT Academy" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject: 'Your Verification Code - DMLT Academy',
+    html: `
+    <div style="margin:0;padding:0;background:#f4f5f7;">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" 
+        style="background:#f4f5f7;padding:40px 0;font-family:Arial,Helvetica,sans-serif;">
+        <tr>
+          <td align="center">
+            <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" 
+              style="background:#ffffff;border-radius:10px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.08);">
+              
+              <tr>
+                <td style="padding:0;margin:0;">
+                  <div style="
+                    background:url('https://i.ibb.co/yBXrWc3H/final-hero-bg.jpg');
+                    background-size:cover;
+                    background-position:center;
+                    padding:40px 20px;
+                    text-align:center;
+                    color:white;">
+                    
+                    <img 
+                      src="https://i.ibb.co/W4jLJpcz/dmlt-logo.jpg" 
+                      alt="DMLT Academy" 
+                      style="width:180px;margin-bottom:20px;border-radius:6px;"
+                    />
+
+                    <h1 style="margin:0;font-size:26px;letter-spacing:0.5px;font-weight:700;color:#063056;">
+                      Verification Code
+                    </h1>
+
+                    <p style="margin-top:10px;font-size:15px;color:#063056;">
+                      Welcome to DMLT Academy!
+                    </p>
+                  </div>
+                </td>
+              </tr>
+
+              <tr>
+                <td style="padding:30px 40px;color:#333333;">
+                  <p style="font-size:16px;margin:0 0 20px 0;">
+                    Hi <strong>${name}</strong>,
+                  </p>
+
+                  <p style="font-size:15px;line-height:1.6;margin:0 0 25px;">
+                    Thank you for signing up! Your verification code for <strong>DMLT Academy</strong> is:
+                  </p>
+
+                  <div style="
+                    background:#f1f5f9;
+                    border:1px solid #dbe3eb;
+                    border-radius:8px;
+                    padding:18px;
+                    text-align:center;
+                    font-size:32px;
+                    font-weight:700;
+                    letter-spacing:4px;
+                    color:#111827;">
+                    ${code}
+                  </div>
+
+                  <p style="font-size:15px;line-height:1.6;margin:25px 0 20px;">
+                    This code will expire in <strong>10 minutes</strong>.
+                  </p>
+
+                  <p style="font-size:14px;color:#6b7280;line-height:1.6;margin-bottom:30px;">
+                    If you didn't request this code, simply ignore this email.
+                  </p>
+
+                  <p style="font-size:15px;margin:0;">
+                    Best regards,<br/>
+                    <strong>DMLT Academy Team</strong>
+                  </p>
+                </td>
+              </tr>
+
+              <tr>
+                <td style="background:#f8fafc;padding:18px;text-align:center;color:#94a3b8;font-size:12px;">
+                  © ${new Date().getFullYear()} DMLT Academy. All rights reserved.
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </div>`,
+  };
+
+  try {
+    await Promise.race([
+      transporter.sendMail(mailOptions),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Email send timeout')), 15000)
+      )
+    ]);
+    logger.info(`[Verification] Sent code to ${email}`);
+    return true;
+  } catch (emailError: any) {
+    logger.error('[Verification] Email failed:', emailError.message);
+    logger.warn(`[Verification] Code for ${email}: ${code}`);
+    return false;
+  }
+}
 
 // Signup endpoint
 router.post(
@@ -98,19 +237,52 @@ router.post(
 
       logger.info(`[Signup] User created successfully: ${student.email}`);
 
-      // Generate tokens
-      const accessToken = generateAccessToken(student.id, student.email);
-      const refreshToken = generateRefreshToken(student.id, student.email);
+      // Generate verification code
+      const verificationCode = generateVerificationCode();
+      const code_hash = await bcrypt.hash(verificationCode, 10);
+
+      // Store verification code
+      verificationStore[email.toLowerCase()] = {
+        code_hash,
+        expiresAt: Date.now() + 10 * 60 * 1000, // 10 minutes
+        used: false,
+        attempts: 0,
+        createdAt: Date.now(),
+      };
+
+      // Send verification email (don't block signup if email fails)
+      sendVerificationEmail(email.toLowerCase(), name, verificationCode).catch(err => {
+        logger.error('[Signup] Failed to send verification email:', err);
+      });
+
+      // Generate new session ID
+      const sessionId = crypto.randomUUID();
+
+      // Generate tokens with session ID
+      const accessToken = generateAccessToken(student.id, student.email, sessionId);
+      const refreshToken = generateRefreshToken(student.id, student.email, sessionId);
 
       // Create session
-      await supabase.from('sessions').insert([
+      const { error: sessionError } = await supabase.from('sessions').insert([
         {
           user_id: student.id,
+          session_id: sessionId,
           refresh_token: refreshToken,
           user_agent: req.headers['user-agent'] || 'unknown',
           ip_address: req.ip || 'unknown',
+          expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days
         },
       ]);
+
+      if (sessionError) {
+        logger.error(`[Signup] Failed to create session: ${sessionError.message}`);
+        return res.status(500).json({
+          success: false,
+          error: 'Failed to create session',
+        });
+      }
+
+      logger.info(`[Signup] Verification email sent to ${email}`);
 
       res.status(201).json({
         success: true,
@@ -188,19 +360,44 @@ router.post(
 
       logger.info(`[Login] User authenticated: ${student.email}`);
 
-      // Generate tokens
-      const accessToken = generateAccessToken(student.id, student.email);
-      const refreshToken = generateRefreshToken(student.id, student.email);
+      // SINGLE-SESSION LOGIC: Delete all existing sessions for this user
+      const { error: deleteError } = await supabase
+        .from('sessions')
+        .delete()
+        .eq('user_id', student.id);
 
-      // Create session
-      await supabase.from('sessions').insert([
+      if (deleteError) {
+        logger.warn(`[Login] Failed to delete old sessions: ${deleteError.message}`);
+      } else {
+        logger.info(`[Login] Invalidated all previous sessions for user: ${student.email}`);
+      }
+
+      // Generate new session ID
+      const sessionId = crypto.randomUUID();
+
+      // Generate tokens with session ID
+      const accessToken = generateAccessToken(student.id, student.email, sessionId);
+      const refreshToken = generateRefreshToken(student.id, student.email, sessionId);
+
+      // Create new session (only ONE session per user due to unique constraint)
+      const { error: insertError } = await supabase.from('sessions').insert([
         {
           user_id: student.id,
+          session_id: sessionId,
           refresh_token: refreshToken,
           user_agent: req.headers['user-agent'] || 'unknown',
           ip_address: req.ip || 'unknown',
+          expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days
         },
       ]);
+
+      if (insertError) {
+        logger.error(`[Login] Failed to create session: ${insertError.message}`);
+        return res.status(500).json({
+          success: false,
+          error: 'Failed to create session',
+        });
+      }
 
       res.json({
         success: true,
@@ -248,23 +445,49 @@ router.post('/refresh', async (req, res) => {
       });
     }
 
-    // Check if session exists
-    const { data: session } = await supabase
+    // CRITICAL: Verify session exists and matches
+    if (!payload.sessionId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid token: missing session ID',
+      });
+    }
+
+    const { data: session, error: sessionError } = await supabase
       .from('sessions')
       .select('*')
       .eq('refresh_token', refresh_token)
       .eq('user_id', payload.userId)
+      .eq('session_id', payload.sessionId)
       .maybeSingle();
 
-    if (!session) {
+    // Session not found or doesn't match = user logged in elsewhere
+    if (!session || sessionError) {
+      logger.warn(`[Refresh] Session not found for user ${payload.userId}. User may have logged in elsewhere.`);
       return res.status(401).json({
         success: false,
-        error: 'Invalid session',
+        error: 'Session invalid. You may have logged in from another device.',
       });
     }
 
-    // Generate new access token
-    const accessToken = generateAccessToken(payload.userId, payload.email);
+    // Check if session expired
+    if (new Date(session.expires_at) < new Date()) {
+      logger.warn(`[Refresh] Session expired for user ${payload.userId}`);
+      await supabase.from('sessions').delete().eq('session_id', payload.sessionId);
+      return res.status(401).json({
+        success: false,
+        error: 'Session expired. Please login again.',
+      });
+    }
+
+    // Generate new access token with same session ID
+    const accessToken = generateAccessToken(payload.userId, payload.email, payload.sessionId);
+
+    // Update last_used_at
+    await supabase
+      .from('sessions')
+      .update({ last_used_at: new Date().toISOString() })
+      .eq('session_id', payload.sessionId);
 
     res.json({
       success: true,
@@ -285,7 +508,18 @@ router.post('/logout', async (req, res) => {
     const { refresh_token } = req.body;
 
     if (refresh_token) {
-      await supabase.from('sessions').delete().eq('refresh_token', refresh_token);
+      // Verify token to get session ID
+      try {
+        const payload = verifyToken(refresh_token);
+        if (payload.sessionId) {
+          // Delete session by session_id for better security
+          await supabase.from('sessions').delete().eq('session_id', payload.sessionId);
+          logger.info(`[Logout] Session deleted for user: ${payload.userId}`);
+        }
+      } catch (error) {
+        // If token is invalid, try deleting by refresh_token as fallback
+        await supabase.from('sessions').delete().eq('refresh_token', refresh_token);
+      }
     }
 
     res.json({

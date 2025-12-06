@@ -11,16 +11,17 @@ export interface TokenPayload {
   userId: string;
   email: string;
   type: 'access' | 'refresh';
+  sessionId?: string; // Added for single-session validation
 }
 
-export function generateAccessToken(userId: string, email: string): string {
-  const payload = { userId, email, type: 'access' as const };
+export function generateAccessToken(userId: string, email: string, sessionId: string): string {
+  const payload = { userId, email, sessionId, type: 'access' as const };
   // @ts-ignore
   return jwt.sign(payload, JWT_SECRET, { expiresIn: ACCESS_EXPIRY });
 }
 
-export function generateRefreshToken(userId: string, email: string): string {
-  const payload = { userId, email, type: 'refresh' as const };
+export function generateRefreshToken(userId: string, email: string, sessionId: string): string {
+  const payload = { userId, email, sessionId, type: 'refresh' as const };
   // @ts-ignore
   return jwt.sign(payload, JWT_SECRET, { expiresIn: REFRESH_EXPIRY });
 }
