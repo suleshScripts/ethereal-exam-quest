@@ -11,16 +11,22 @@ let razorpay: Razorpay | null = null;
 
 if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
   try {
+    logger.info(`[Razorpay] Initializing with Key ID: ${process.env.RAZORPAY_KEY_ID}`);
+    logger.info(`[Razorpay] Key Secret length: ${process.env.RAZORPAY_KEY_SECRET.length} chars`);
+    
     razorpay = new Razorpay({
       key_id: process.env.RAZORPAY_KEY_ID,
       key_secret: process.env.RAZORPAY_KEY_SECRET,
     });
-    logger.info('✅ Razorpay initialized');
+    logger.info('✅ Razorpay initialized successfully');
   } catch (error: any) {
     logger.error('❌ Razorpay initialization failed:', error.message);
+    logger.error('Error details:', error);
   }
 } else {
   logger.warn('⚠️ Razorpay keys not configured. Payment will not work.');
+  logger.warn(`RAZORPAY_KEY_ID present: ${!!process.env.RAZORPAY_KEY_ID}`);
+  logger.warn(`RAZORPAY_KEY_SECRET present: ${!!process.env.RAZORPAY_KEY_SECRET}`);
 }
 
 // Create Razorpay order
@@ -76,10 +82,16 @@ router.post('/create-order', authenticate, async (req: Request, res: Response) =
     });
   } catch (error: any) {
     logger.error('[Payment] Order creation failed:', error);
+    logger.error('[Payment] Error name:', error.name);
+    logger.error('[Payment] Error message:', error.message);
+    logger.error('[Payment] Error stack:', error.stack);
+    logger.error('[Payment] Razorpay instance exists:', !!razorpay);
+    
     res.status(500).json({
       success: false,
       error: 'Failed to create payment order',
       message: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined,
     });
   }
 });
