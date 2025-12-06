@@ -6,7 +6,7 @@ param(
     [string]$BackendUrl
 )
 
-Write-Host "🔄 Updating backend URL to: $BackendUrl" -ForegroundColor Cyan
+Write-Host "Updating backend URL to: $BackendUrl" -ForegroundColor Cyan
 
 # Update .env.production
 $envContent = @"
@@ -29,13 +29,12 @@ VITE_RAZORPAY_KEY_ID=rzp_live_Rlz1BRY2tHLFgm
 "@
 
 Set-Content -Path ".env.production" -Value $envContent
-Write-Host "✅ Updated .env.production" -ForegroundColor Green
+Write-Host "Updated .env.production" -ForegroundColor Green
 
-# Also update backend ALLOWED_ORIGINS if needed
 Write-Host ""
-Write-Host "📝 Next steps:" -ForegroundColor Yellow
+Write-Host "Next steps:" -ForegroundColor Yellow
 Write-Host "1. npm run build" -ForegroundColor White
 Write-Host "2. firebase deploy --only hosting" -ForegroundColor White
 Write-Host ""
-Write-Host "🎉 Your backend URL has been updated!" -ForegroundColor Green
+Write-Host "Your backend URL has been updated!" -ForegroundColor Green
 Write-Host "After rebuilding and deploying, your app will be fully functional." -ForegroundColor Cyan
