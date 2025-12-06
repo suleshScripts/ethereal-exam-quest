@@ -39,22 +39,35 @@ const PaymentModal = ({ isOpen, onClose, plan, onSuccess }: PaymentModalProps) =
             }
 
             // 2. Create Order on Backend
-            const { data: orderData, error: orderError } = await supabase.functions.invoke('create-razorpay-order', {
-                body: {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                throw new Error('Please login to continue');
+            }
+
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/payment/create-order`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
                     amount: plan.price,
                     planId: plan.id,
-                    receipt: `receipt_${auth.user?.phone}_${Date.now()}`
-                }
+                    planName: plan.name,
+                })
             });
 
-            if (orderError || !orderData) {
-                logger.error('Order creation failed:', orderError);
-                throw new Error('Failed to create payment order. Please try again.');
+            if (!response.ok) {
+                const errorData = await response.json();
+                logger.error('Order creation failed:', errorData);
+                throw new Error(errorData.error || 'Failed to create payment order. Please try again.');
             }
+
+            const { order: orderData, key: razorpayKey } = await response.json();
 
             // 3. Initialize Razorpay Checkout
             const options = {
-                key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+                key: razorpayKey || import.meta.env.VITE_RAZORPAY_KEY_ID,
                 amount: orderData.amount,
                 currency: orderData.currency,
                 name: "Ethereal Exam Quest",
