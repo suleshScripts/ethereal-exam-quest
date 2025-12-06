@@ -8,17 +8,41 @@ build/
 .next/
 out/
 
-# Environment variables
+# Environment variables - NEVER COMMIT THESE
 .env
 .env.local
 .env.production
 .env.development
+.env.*.local
 backend/.env
 backend/.env.local
 backend/.env.production
 
-# Credentials (IMPORTANT!)
+# Credentials and Secrets - CRITICAL
 ADMIN_CREDENTIALS.md
+*_CREDENTIALS.md
+*.key
+*.pem
+*.p12
+*.pfx
+
+# AI-generated documentation (moved to docs/ai-generated)
+docs/ai-generated/
+
+# Test files with hardcoded secrets
+test-admin-*.mjs
+test-razorpay-*.mjs
+test-razorpay-*.js
+fix-admin-*.mjs
+create-admin-*.mjs
+update-admin-*.mjs
+apply-security-fixes.mjs
+
+# SQL files with sensitive data
+*ADMIN*.sql
+CREATE_ADMIN*.sql
+INSERT_ADMIN*.sql
+FINAL_ADMIN*.sql
 
 # Logs
 logs/
@@ -27,6 +51,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 backend/logs/
+pglite-debug.log
 
 # OS files
 .DS_Store

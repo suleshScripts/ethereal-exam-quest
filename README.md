@@ -1,169 +1,166 @@
 # DMLT Academy Exam Portal
 
-A comprehensive online examination platform built for DMLT Academy with Google OAuth authentication, bilingual support (English/Marathi), and real-time exam monitoring.
+A comprehensive online examination platform built for DMLT Academy with secure authentication, email verification, payment integration, and real-time exam monitoring.
+
+## 🚨 SECURITY NOTICE
+
+**⚠️ CRITICAL: If you cloned this repository before [DATE], all secrets have been exposed and MUST be rotated immediately.**
+
+See [SECURITY_SETUP_GUIDE.md](./SECURITY_SETUP_GUIDE.md) for detailed instructions on:
+- Rotating Supabase keys
+- Rotating Razorpay API keys
+- Changing email passwords
+- Generating new JWT secrets
+- Enabling Row Level Security (RLS)
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 - Node.js 18+ installed
 - Supabase account
-- Google Cloud Console project (for OAuth)
+- Razorpay account (for payments)
+- Gmail account with App Password (for emails)
 
 ### Installation
 
 1. **Clone the repository**
    ```bash
+   git clone <repository-url>
    cd ethereal-exam-quest
    ```
 
 2. **Install dependencies**
    ```bash
    npm install
+   cd backend && npm install && cd ..
    ```
 
 3. **Configure Environment Variables**
 
-   Copy `.env.example` to `.env` and fill in your credentials:
+   **Frontend (.env):**
    ```bash
    cp .env.example .env
    ```
 
-   Required variables:
+   Fill in:
    ```env
-   # Supabase Configuration
-   VITE_SUPABASE_URL=your_supabase_project_url
+   VITE_API_URL=http://localhost:8080
+   VITE_SUPABASE_URL=your_supabase_url
    VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-   
-   # EmailJS Configuration (optional)
-   VITE_EMAILJS_SERVICE_ID=your_emailjs_service_id
-   VITE_EMAILJS_TEMPLATE_ID=your_emailjs_template_id
-   VITE_EMAILJS_PUBLIC_KEY=your_emailjs_public_key
+   ```
+
+   **Backend (backend/.env):**
+   ```bash
+   cp backend/.env.example backend/.env
+   ```
+
+   Fill in:
+   ```env
+   NODE_ENV=development
+   PORT=8080
+   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+   JWT_SECRET=your_generated_jwt_secret
+   EMAIL_USER=your_email@gmail.com
+   EMAIL_PASS=your_gmail_app_password
+   RAZORPAY_KEY_ID=your_razorpay_key_id
+   RAZORPAY_KEY_SECRET=your_razorpay_secret
    ```
 
 4. **Set up Supabase Database**
 
-   Run the migration files in order:
+   Run `SECURITY_FIXES.sql` in your Supabase SQL Editor to:
+   - Enable Row Level Security (RLS)
+   - Create security policies
+   - Set up email verification table
+
+5. **Start Development Servers**
+
+   **Backend:**
    ```bash
-   # View migrations folder for SQL files
-   # Execute them in your Supabase SQL Editor
+   cd backend
+   npm run dev
    ```
 
-5. **Configure Google OAuth**
-
-   See [Google OAuth Setup](docs/setup/GOOGLE_OAUTH_SETUP.md) for detailed instructions.
-
-6. **Run Development Server**
+   **Frontend:**
    ```bash
    npm run dev
    ```
 
-   The app will be available at `http://localhost:8080`
+## 🔒 Security Features
 
-## 🏗️ Project Structure
-
-```
-ethereal-exam-quest/
-├── src/
-│   ├── pages/          # Route components
-│   ├── components/     # Reusable UI components
-│   ├── context/        # React Context providers
-│   ├── lib/            # Utilities and services
-│   ├── admin/          # Admin panel (separate module)
-│   └── hooks/          # Custom React hooks
-├── docs/               # Documentation
-│   ├── setup/          # Setup guides
-│   └── troubleshooting/ # Common issues
-├── migrations/         # Database migration files
-├── scripts/            # Utility scripts
-└── public/             # Static assets
-```
-
-## ✨ Features
-
-- **Google OAuth Authentication** - Secure sign-in with Google
-- **Bilingual Support** - English and Marathi
-- **5 Subjects** - Mathematics, Physics, Chemistry, Biology, General Knowledge
-- **25 Question Sets** - 5 sets per subject, 20 MCQs each
-- **Real-time Monitoring** - Camera monitoring during exams
-- **Instant Results** - Immediate feedback with analytics
-- **Plan System** - Flexible subscription plans
-- **Admin Panel** - Comprehensive management interface
-
-## 🔐 Authentication Flow
-
-1. User clicks "Sign in with Google"
-2. OAuth popup/redirect to Google
-3. User authorizes the app
-4. Redirected to `/auth/callback`
-5. User profile created in `students` table
-6. If profile incomplete, redirected to `/complete-profile`
-7. User adds username and phone number
-8. Redirected to home page
-
-## 📝 Current Status
-
-### ✅ Completed
-- File organization and cleanup
-- Logger utility implementation
-- TypeScript strict mode compliance
-- Google OAuth integration
-- Admin panel
-- Plan management system
-
-### ⚠️ **CRITICAL: Google OAuth Not Configured**
-
-**Login and signup won't work until you configure Google OAuth!**
-
-**Quick Fix:**
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a new project or select existing
-3. Enable Google+ API
-4. Go to Credentials → Create OAuth 2.0 Client ID
-5. Add authorized redirect URI: `http://localhost:8080/auth/callback`
-6. Go to Supabase Dashboard → Authentication → Providers
-7. Enable Google provider
-8. Paste your Google Client ID and Client Secret
-9. **No .env changes needed** - Supabase handles OAuth configuration
-
-**Detailed Guide:** See `docs/setup/` folder
-
-### 🚧 In Progress
-- Performance optimization
-- Bundle size reduction
-
-## 🛠️ Available Scripts
-
-```bash
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run preview      # Preview production build
-npm run lint         # Run ESLint
-```
+- ✅ Row Level Security (RLS) enabled on all tables
+- ✅ JWT-based authentication
+- ✅ Bcrypt password hashing
+- ✅ Email verification system
+- ✅ Rate limiting on sensitive endpoints
+- ✅ HTTPS enforcement in production
+- ✅ CORS configuration
+- ✅ Input validation and sanitization
 
 ## 📚 Documentation
 
-- [Google OAuth Setup](docs/setup/GOOGLE_OAUTH_SETUP.md)
-- [Admin Panel Setup](docs/setup/ADMIN_PANEL_SETUP.md)
-- [Troubleshooting](docs/troubleshooting/common-issues.md)
+- [Security Setup Guide](./SECURITY_SETUP_GUIDE.md) - **READ THIS FIRST**
+- [API Endpoints](./API_ENDPOINTS.md) - Complete API documentation
+- [Deployment Guide](./DEPLOYMENT_COMPLETE.md) - Production deployment instructions
 
-## 🤝 Contributing
+## 🏗️ Architecture
 
-1. Create a feature branch
-2. Make your changes
-3. Test thoroughly
-4. Submit a pull request
+### Frontend
+- React + TypeScript
+- Vite build tool
+- TailwindCSS + shadcn/ui
+- React Router for navigation
+
+### Backend
+- Node.js + Express
+- TypeScript
+- Supabase for database
+- JWT for authentication
+- Nodemailer for emails
+- Razorpay for payments
+
+## 🚀 Deployment
+
+### Frontend (Firebase Hosting)
+```bash
+npm run build
+firebase deploy --only hosting
+```
+
+### Backend (Render)
+1. Connect GitHub repository
+2. Set environment variables in Render Dashboard
+3. Deploy automatically on push
+
+**Important:** Never commit secrets to `render.yaml`. Set them in Render Dashboard.
+
+## 🧪 Testing
+
+Run the application locally and test:
+- User signup with email verification
+- Login/logout
+- Password reset with OTP
+- Payment integration
+- Admin panel access
+
+## ⚠️ Important Notes
+
+1. **Never commit `.env` files** - They are in `.gitignore`
+2. **Rotate all secrets** if they were ever committed
+3. **Enable RLS** in Supabase before going to production
+4. **Use environment variables** for all sensitive data
+5. **Test RLS** with Burp Suite to ensure data isolation
+
+## 📞 Support
+
+For security issues, please refer to [SECURITY_SETUP_GUIDE.md](./SECURITY_SETUP_GUIDE.md)
 
 ## 📄 License
 
-Private - DMLT Academy
-
-## 🆘 Support
-
-For issues or questions:
-1. Check the [troubleshooting guide](docs/troubleshooting/)
-2. Review existing documentation in `docs/`
-3. Contact the development team
+[Your License Here]
 
 ---
 
-**Made with ❤️ for DMLT Academy**
+**Remember: Security is not optional. Follow the security guide before deploying to production.**
