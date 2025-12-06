@@ -207,6 +207,20 @@ router.post(
         });
       }
 
+      // Check if phone already exists
+      const { data: existingPhone } = await supabase
+        .from('students')
+        .select('phone')
+        .eq('phone', phone)
+        .maybeSingle();
+
+      if (existingPhone) {
+        return res.status(409).json({
+          success: false,
+          error: 'Phone number already registered',
+        });
+      }
+
       // Hash password
       const passwordHash = await bcrypt.hash(password, 10);
 
@@ -229,9 +243,33 @@ router.post(
 
       if (insertError) {
         logger.error('[Signup] Database error:', insertError);
+        
+        // Handle specific database errors
+        if (insertError.code === '23505') {
+          // Unique constraint violation
+          if (insertError.message.includes('phone')) {
+            return res.status(409).json({
+              success: false,
+              error: 'Phone number already registered',
+            });
+          }
+          if (insertError.message.includes('email')) {
+            return res.status(409).json({
+              success: false,
+              error: 'Email already registered',
+            });
+          }
+          if (insertError.message.includes('username')) {
+            return res.status(409).json({
+              success: false,
+              error: 'Username already taken',
+            });
+          }
+        }
+        
         return res.status(500).json({
           success: false,
-          error: 'Failed to create account',
+          error: 'Failed to create account. Please try again.',
         });
       }
 
